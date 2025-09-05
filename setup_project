@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Purpose: A shell script to set up the project in one command
+# Usage: . setup_project
+
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: NOT inside a Git repo, you probably need to 'git init'" >&2
+    exit 1
+fi
+
+make environment \
+    && make requirements \
+    && uv run pre-commit install
