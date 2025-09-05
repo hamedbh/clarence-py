@@ -61,15 +61,24 @@ def temp_pass_store():
 
 
 def test_get_secret(temp_pass_store):
-    assert clarence.get_secret("test/secret1") == "password123"
-    assert clarence.get_secret("api/gitlab") == "gitlab_token_456"
+    assert clarence.get_secret("test/secret1").reveal() == "password123"
+    assert clarence.get_secret("api/gitlab").reveal() == "gitlab_token_456"
 
 
 def test_f_strings(temp_pass_store):
     secret1 = clarence.get_secret("test/secret1")
     gitlab = clarence.get_secret("api/gitlab")
-    assert f"{secret1}" == "password123"
-    assert f"{gitlab}" == "gitlab_token_456"
+    assert f"{secret1}" == "p*********3"
+    assert f"{gitlab}" == "g**************6"
+    assert f"{secret1.reveal()}" == "password123"
+    assert f"{gitlab.reveal()}" == "gitlab_token_456"
+
+    # Test format specifiers
+    assert f"{secret1:>15}" == "    p*********3"
+    assert f"{secret1:<15}" == "p*********3    "
+    assert f"{secret1:^15}" == "  p*********3  "
+    assert f"{secret1:0>15}" == "0000p*********3"
+    assert f"{secret1.reveal():>15}" == "    password123"
 
 
 def test_plus_strings(temp_pass_store):
@@ -116,3 +125,40 @@ def test_sqlalchemy(temp_pass_store):
         engine_url.render_as_string(hide_password=False)
         == f"{engine_type}://{username}:password123@{host}/{database}"
     )
+
+
+def test_secret_obscure_edge_cases():
+    # Test empty string
+    empty_secret = clarence.Secret("")
+    assert str(empty_secret) == "***"
+    assert repr(empty_secret) == "***"
+
+    # Test single character
+    single_secret = clarence.Secret("a")
+    assert str(single_secret) == "*****"
+    assert repr(single_secret) == "*****"
+
+    # Test two characters
+    two_secret = clarence.Secret("ab")
+    assert str(two_secret) == "*****"
+    assert repr(two_secret) == "*****"
+
+    # Test three characters
+    three_secret = clarence.Secret("abc")
+    assert str(three_secret) == "*****"
+    assert repr(three_secret) == "*****"
+
+    # Test four characters
+    four_secret = clarence.Secret("abcd")
+    assert str(four_secret) == "*****"
+    assert repr(four_secret) == "*****"
+
+    # Test five characters (boundary case)
+    five_secret = clarence.Secret("abcde")
+    assert str(five_secret) == "a***e"
+    assert repr(five_secret) == "a***e"
+
+    # Test longer string
+    long_secret = clarence.Secret("password123")
+    assert str(long_secret) == "p*********3"
+    assert repr(long_secret) == "p*********3"

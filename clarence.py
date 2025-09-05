@@ -47,7 +47,7 @@ class Secret(str):
         return self._obscure()
 
     def __format__(self, format_spec):
-        return self._value.__format__(format_spec)
+        return self._obscure().__format__(format_spec)
 
     def _obscure(self):
         """Obscures the secret by replacing characters with asterisks.
@@ -56,7 +56,9 @@ class Secret(str):
             str: The obscured string.
         """
         length = len(self._value)
-        if length < 5:
+        if length <= 0:
+            return "***"
+        elif length < 5:
             return "*" * 5
         else:
             return self._value[0] + "*" * (length - 2) + self._value[-1]
@@ -88,7 +90,7 @@ def get_secret(path: str) -> Secret:
 class SecretsList:
     """Represents a list of secrets."""
 
-    def __init__(self, tree: str) -> str:
+    def __init__(self, tree: str) -> None:
         """Initializes the SecretsList with a tree structure.
 
         Args:
