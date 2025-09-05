@@ -14,7 +14,7 @@ wheels = [
 [[package]]
 name = "clarence"
 version = "0.2.1"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
